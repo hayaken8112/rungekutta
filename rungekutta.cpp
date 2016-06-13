@@ -6,11 +6,11 @@
 class Func 
 {
 public:
-    double operator()(double x, double y)
+    std::vector<double> operator()(double x, std::vector<double> y)
         {
-            double dydx;
-            dydx = sin(x) * cos(x) - y * cos(x);
-            return dydx;
+            std::vector<double> ans(1);
+            ans[0] = sin(x) * cos(x) - y[0] * cos(x);
+            return ans;
         }
 };
 
@@ -23,39 +23,61 @@ public:
             m_axis[0] = 0.0;
             m_params.resize(m_num_of_params);
             for(int i = 0; i < m_num_of_params; i++){
-                m_params[i].resize(IMAX);
-                m_params[i][0] = 0.0;
+                m_params[i] = 0.0;
             }
             m_steps = 10000;
-            
             
             
         }
     template<class F>
     void calc(F func)
         {
-            double k1, k2, k3, k4;
+            std::vector<double> temp(m_num_of_params);
+            
             double h = (m_target - m_axis[0]) / m_steps;
             
 
-            for (int i = 0; i < m_steps; i++){
-                k1 = h * func(m_axis[i], m_params[0][i]);
-                k2 = h * func(m_axis[i] + h / 2.0, m_params[0][i] + k1 / 2.0);
-                k3 = h * func(m_axis[i] + h / 2.0, m_params[0][i] + k2 / 2.0);
-                k4 = h * func(m_axis[i] + h, m_params[0][i] + k3);
+                
+            for (int j = 0; j < m_steps; j++){
+                // k1
+                std::vector<double> k1 = func(m_axis[j], m_params);
+                // k2
+                for (int i = 0; i < m_num_of_params; i++){
+                    temp[i] = m_params[i] + (h / 2.0) * k1[i];
+                }
+                std::vector<double> k2 = func(m_axis[j] + h / 2.0, temp);
+                // k3
+                for (int i = 0; i < m_num_of_params; i++){
+                    temp[i] = m_params[i] + (h / 2.0) * k2[i];
+                }
+                std::vector<double> k3 = func(m_axis[j] + h / 2.0, temp);
 
-                m_axis[i+1] = m_axis[i] + h;
-                m_params[0][i+1] = m_params[0][i] + 1.0 / 6.0 * (k1 + 2.0 * k2 + 2.0 * k3 + k4);
-                std::cout << m_axis[i] << " " << m_params[0][i] << std::endl;
+                // k4
+                for (int i = 0; i < m_num_of_params; i++){
+                    temp[i] = m_params[i] + h * k3[i];
+                }
+                
+                std::vector<double> k4 = func(m_axis[j] + h, temp);
+
+            
+                for (int i = 0; i < m_num_of_params; i++){
+                    m_params[i] = m_params[i] + (h / 6.0) * (k1[i] + 2.0 * k2[i] + 2.0 * k3[i] + k4[i]);
+                }
+                
+                m_axis[j+1] = m_axis[j] + h;
+
             }
+            for (int i = 0; i < m_num_of_params; i++){
+                std::cout << m_params[i] << std::endl;
+            }
+            
         }
 private:
     int m_num_of_params;
     double m_axis[IMAX];
-    std::vector<std::vector<double>> m_params;
+    std::vector<double> m_params;
     double m_target;
     int m_steps;
-    
     
 };
 
