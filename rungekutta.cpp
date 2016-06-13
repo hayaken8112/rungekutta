@@ -6,35 +6,41 @@
 class Func 
 {
 public:
-    std::vector<double> operator()(double x, std::vector<double> y)
+    std::vector<double> operator()(double t, std::vector<double> x)
         {
             std::vector<double> ans(2);
-            ans[0] = y[1];
-            ans[1] = -y[0];
+            ans[0] = x[1];
+            ans[1] = -x[0];
             
             return ans;
         }
+    int getNum_of_params()
+        {
+            return num_of_params;
+        }
+    
+private:
+    int num_of_params = 2;
+    
 };
 
-
+template<class F>
 class RungeKutta 
 {
 public:
-    RungeKutta(int num_of_params):m_num_of_params(num_of_params)
+    RungeKutta(F func, int num_of_params):func(func), m_num_of_params(num_of_params)
+        {
+            m_params.resize(m_num_of_params);
+        }
+    void calc( double target)
         {
             m_axis[0] = 0.0;
-            m_params.resize(m_num_of_params);
-            m_steps = 10000;
-            
-            
-        }
-    template<class F>
-    void calc(F func, double target)
-        {
             for(int i = 0; i < m_num_of_params; i++){
                 m_params[i] = 0.0;
             }
             m_params[0] = 1.0;
+            
+
             
             std::vector<double> temp(m_num_of_params);
             
@@ -86,10 +92,13 @@ public:
             
         }
 private:
+    F func;
     int m_num_of_params;
     double m_axis[IMAX];
     std::vector<double> m_params;
-    int m_steps;
+    int m_steps = 10000;
+
+    
     
 };
 
@@ -98,8 +107,8 @@ int main()
 {
 
     Func func;
-    RungeKutta rungekutta(2);
-    rungekutta.calc(func, 10);
+    RungeKutta<Func> rungekutta(func, func.getNum_of_params());
+    rungekutta.calc(10.0);
 
     return 0;
     
