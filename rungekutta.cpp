@@ -8,8 +8,10 @@ class Func
 public:
     std::vector<double> operator()(double x, std::vector<double> y)
         {
-            std::vector<double> ans(1);
-            ans[0] = sin(x) * cos(x) - y[0] * cos(x);
+            std::vector<double> ans(2);
+            ans[0] = y[1];
+            ans[1] = -y[0];
+            
             return ans;
         }
 };
@@ -18,23 +20,25 @@ public:
 class RungeKutta 
 {
 public:
-    RungeKutta(int num_of_params, double target):m_num_of_params(num_of_params), m_target(target)
+    RungeKutta(int num_of_params):m_num_of_params(num_of_params)
         {
             m_axis[0] = 0.0;
             m_params.resize(m_num_of_params);
-            for(int i = 0; i < m_num_of_params; i++){
-                m_params[i] = 0.0;
-            }
             m_steps = 10000;
             
             
         }
     template<class F>
-    void calc(F func)
+    void calc(F func, double target)
         {
+            for(int i = 0; i < m_num_of_params; i++){
+                m_params[i] = 0.0;
+            }
+            m_params[0] = 1.0;
+            
             std::vector<double> temp(m_num_of_params);
             
-            double h = (m_target - m_axis[0]) / m_steps;
+            double h = (target - m_axis[0]) / m_steps;
             
 
                 
@@ -63,20 +67,28 @@ public:
                 for (int i = 0; i < m_num_of_params; i++){
                     m_params[i] = m_params[i] + (h / 6.0) * (k1[i] + 2.0 * k2[i] + 2.0 * k3[i] + k4[i]);
                 }
+                for (int i = 0; i < m_num_of_params; i++){
+                    if (i < m_num_of_params - 1){
+                        std::cout  << m_params[i] << " ";
+                    } else {
+                        std::cout << m_params[i] << std::endl;
+                        
+                    }
+                    
+                    
+                
+                }                
                 
                 m_axis[j+1] = m_axis[j] + h;
+                
+            }
 
-            }
-            for (int i = 0; i < m_num_of_params; i++){
-                std::cout << m_params[i] << std::endl;
-            }
             
         }
 private:
     int m_num_of_params;
     double m_axis[IMAX];
     std::vector<double> m_params;
-    double m_target;
     int m_steps;
     
 };
@@ -86,9 +98,8 @@ int main()
 {
 
     Func func;
-    RungeKutta rungekutta(1, 10.0);
-    
-    rungekutta.calc(func);
+    RungeKutta rungekutta(2);
+    rungekutta.calc(func, 10);
 
     return 0;
     
